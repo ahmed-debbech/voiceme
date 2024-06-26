@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:voiceme/parts/VoiceComposer.dart';
-import 'package:voiceme/parts/list_msgs.dart';
+import 'package:voiceme/parts/ListMessages.dart';
 
 void main() {
   runApp(const MyApp());

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'dart:html' as html;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:record/record.dart';

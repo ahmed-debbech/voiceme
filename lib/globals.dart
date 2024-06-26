@@ -1,0 +1,1 @@
+int numOfSecOfRec=59;

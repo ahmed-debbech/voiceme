@@ -1,7 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
-import 'dart:js' as js;
-import 'dart:js_util' as js_util;
 
 import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
 
@@ -10,6 +9,7 @@ import 'package:record/record.dart';
 import 'package:http/http.dart' as http;
 import 'package:voiceme/logic/recording_mobile.dart';
 import 'package:voiceme/logic/recording_web.dart';
+import 'package:voiceme/globals.dart' as globals;
 
 class VoiceComposer extends StatefulWidget {
   const VoiceComposer({super.key});
@@ -21,23 +21,45 @@ class VoiceComposer extends StatefulWidget {
 class _VoiceComposerState extends State<VoiceComposer> {
   //final FlutterSoundRecorder _myRecorder = FlutterSoundRecorder();
   late AudioRecorder record;
-  late js.JsObject audioRecorder;
+  //late js.JsObject audioRecorder;
+  int _counter = globals.numOfSecOfRec;
+  late Timer _timer;
+
+  bool isRecording = false;
 
   @override
   void initState() {
-    //record = AudioRecorder();
-    audioRecorder = js.JsObject(js.context['AudioRecorder']);
-
+    record = AudioRecorder();
+    //audioRecorder = js.JsObject(js.context['AudioRecorder']);
     super.initState();
+  }
+
+  void startTimer() {
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(oneSec, (Timer timer) {
+      if (_counter == 0) {
+        resetTimer();
+        _stopRec();
+      } else {
+        setState(() {
+          _counter--;
+        });
+      }
+    });
+  }
+  void resetTimer(){
+    _timer.cancel();
+    setState(() => _counter = globals.numOfSecOfRec);
   }
 
   @override
   void dispose() {
-    //record.dispose();
+    record.dispose();
+    _timer.cancel();
     super.dispose();
   }
 
-  void stopRecording() async {
+  /*void stopRecording() async {
     try {
       var blob = await audioRecorder.callMethod('stop') as js.JsObject;
       var data = await blob.callMethod('arrayBuffer') as Uint8List;
@@ -46,23 +68,27 @@ class _VoiceComposerState extends State<VoiceComposer> {
     } catch (e) {
       print('Error stopping recording: $e');
     }
-  }
+  }*/
 
   Future<void> _startRec() async {
+    setState(() => isRecording = true);
     if (kIsWeb) {
       //webRecStart(record);
-      audioRecorder.callMethod('start');
+      //audioRecorder.callMethod('start');
     } else if (Platform.isAndroid) {
-      mobileRecStart(record);
+      await mobileRecStart(record);
     }
+    startTimer();
   }
 
   Future<void> _stopRec() async {
+    setState(() => isRecording = false);
+    resetTimer();
     if (kIsWeb) {
       //webRecStop(record);
-      stopRecording();
+      //stopRecording();
     } else if (Platform.isAndroid) {
-      mobileRecStop(record);
+      await mobileRecStop(record);
     }
   }
 
@@ -74,10 +100,12 @@ class _VoiceComposerState extends State<VoiceComposer> {
         Expanded(
           child: Container(
             alignment: Alignment.center,
-            child: Text('Record a voice message ->'),
+            child:
+            (!isRecording)? Text('Record a voice message ->')
+            : Text(_counter.toString())
           ),
         ),
-        Spacer(),
+        /*Spacer(),
         Expanded(
           child: Container(
             alignment: Alignment.center,
@@ -87,15 +115,20 @@ class _VoiceComposerState extends State<VoiceComposer> {
                 },
                 child: Icon(Icons.stop)),
           ),
-        ),
+        ),*/
         Spacer(),
         Container(
             alignment: Alignment.centerRight,
             child: ElevatedButton(
                 onPressed: () {
-                  _startRec();
+                  if (!isRecording)
+                    _startRec();
+                  else
+                    _stopRec();
                 },
-                child: Icon(Icons.voice_chat))),
+                child: (!isRecording)
+                    ? Icon(Icons.voice_chat)
+                    : Icon(Icons.stop_rounded))),
       ],
     );
   }
