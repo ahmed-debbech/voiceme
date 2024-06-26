@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:voiceme/backend/MessageBackend.dart';
 import 'package:voiceme/parts/Message.dart';
@@ -16,14 +18,19 @@ class _ListMessagesState extends State<ListMessages> {
 
   MessageBackend messageBackend = MessageBackend();
   List<Message> ui = [];
-   
+  late Timer _timer;
+  
   @override
   void initState(){
-    loadNewMessages();
+    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) { loadNewMessages(); });
   }
-
+  @override
+  void dispose(){
+    _timer.cancel(); 
+  }
   Future<void> loadNewMessages()async {
     List<MessageModel> list = await messageBackend.getOfToday();
+    setState(() => {ui.clear()});
     for (MessageModel mm in list){
       setState(() => {ui.add(Message(sentByMe: mm.isByMe, duration: mm.duration, date: mm.date, status: mm.status,))});    }
   }
