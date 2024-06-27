@@ -6,7 +6,6 @@ import 'package:voiceme/parts/Message.dart';
 import 'package:voiceme/model/MessageModel.dart';
 
 class ListMessages extends StatefulWidget {
-
   List<MessageModel> messages = [];
 
   ListMessages({super.key});
@@ -15,29 +14,40 @@ class ListMessages extends StatefulWidget {
 }
 
 class _ListMessagesState extends State<ListMessages> {
-
   MessageBackend messageBackend = MessageBackend();
   List<Message> ui = [];
   late Timer _timer;
-  
+
   @override
-  void initState(){
-    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) { loadNewMessages(); });
+  void initState() {
+    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+      loadNewMessages();
+    });
   }
+
   @override
-  void dispose(){
-    _timer.cancel(); 
+  void dispose() {
+    _timer.cancel();
   }
-  Future<void> loadNewMessages()async {
+
+  Future<void> loadNewMessages() async {
     List<MessageModel> list = await messageBackend.getOfToday();
     setState(() => {ui.clear()});
-    for (MessageModel mm in list){
-      setState(() => {ui.add(Message(sentByMe: mm.isByMe, duration: mm.duration, date: mm.date, status: mm.status,))});    }
+    for (MessageModel mm in list) {
+      setState(() => {
+            ui.add(Message(
+              id: mm.id,
+              sentByMe: mm.isByMe,
+              duration: mm.duration,
+              date: mm.date,
+              status: mm.status,
+            ))
+          });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    
     return Flexible(
       child: ListView.builder(
         padding: EdgeInsets.all(8.0),
@@ -48,4 +58,3 @@ class _ListMessagesState extends State<ListMessages> {
     );
   }
 }
-

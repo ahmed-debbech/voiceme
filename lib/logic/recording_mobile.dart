@@ -20,15 +20,14 @@ Future<void> mobileRecStart(AudioRecorder record) async {
   }
 }
 
-Future<void> mobileRecStop(AudioRecorder record) async {
-  print("stoping");
+Future<String> mobileRecStop(AudioRecorder record) async {
   try {
     final path = await record.stop();
     print(path);
     File f = File(path!);
     final contents = f.readAsBytesSync();
     String base = base64Encode(contents);
-    final response = await http.post(
+    /*final response = await http.post(
       Uri.parse("http://localhost:3000/string"),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
@@ -36,8 +35,10 @@ Future<void> mobileRecStop(AudioRecorder record) async {
       body: jsonEncode(<String, dynamic>{
         'string': base,
       }),
-    );
+    );*/
+    return base;
   } catch (e) {
-    print("eeee");
+    print(e.toString());
   }
+  return "";
 }

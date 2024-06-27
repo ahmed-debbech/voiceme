@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:http/http.dart' as http;
+import 'package:voiceme/backend/MessageBackend.dart';
 import 'package:voiceme/logic/recording_mobile.dart';
 import 'package:voiceme/logic/recording_web.dart';
 import 'package:voiceme/globals.dart' as globals;
@@ -24,7 +25,7 @@ class _VoiceComposerState extends State<VoiceComposer> {
   //late js.JsObject audioRecorder;
   int _counter = globals.numOfSecOfRec;
   late Timer _timer;
-
+  MessageBackend mb = MessageBackend();
   bool isRecording = false;
 
   @override
@@ -47,7 +48,8 @@ class _VoiceComposerState extends State<VoiceComposer> {
       }
     });
   }
-  void resetTimer(){
+
+  void resetTimer() {
     _timer.cancel();
     setState(() => _counter = globals.numOfSecOfRec);
   }
@@ -81,15 +83,17 @@ class _VoiceComposerState extends State<VoiceComposer> {
     startTimer();
   }
 
-  Future<void> _stopRec() async {
+  Future<String> _stopRec() async {
     setState(() => isRecording = false);
     resetTimer();
     if (kIsWeb) {
       //webRecStop(record);
       //stopRecording();
     } else if (Platform.isAndroid) {
-      await mobileRecStop(record);
+      String base = await mobileRecStop(record);
+      return base;
     }
+    return "";
   }
 
   @override
@@ -99,11 +103,10 @@ class _VoiceComposerState extends State<VoiceComposer> {
       children: [
         Expanded(
           child: Container(
-            alignment: Alignment.center,
-            child:
-            (!isRecording)? Text('Record a voice message ->')
-            : Text(_counter.toString())
-          ),
+              alignment: Alignment.center,
+              child: (!isRecording)
+                  ? Text('Record a voice message ->')
+                  : Text(_counter.toString())),
         ),
         /*Spacer(),
         Expanded(
@@ -124,7 +127,14 @@ class _VoiceComposerState extends State<VoiceComposer> {
                   if (!isRecording)
                     _startRec();
                   else
-                    _stopRec();
+                    _stopRec().then((value) => {
+                          if (value != "")
+                            {
+                              mb.addNew(value).then((value) => {
+                                    //addd message to list with status
+                                  })
+                            }
+                        });
                 },
                 child: (!isRecording)
                     ? Icon(Icons.voice_chat)

@@ -10,8 +10,10 @@ class Message extends StatefulWidget {
   final String date;
   final String status;
   final bool sentByMe;
+  final String id;
 
   Message({
+    required this.id,
     required this.duration,
     required this.sentByMe,
     required this.date,
@@ -30,7 +32,7 @@ class _MessageState extends State<Message> {
   late Timer timer;
 
   Future<void> play() async {
-    Uint8List l = await mb.getMessageContent("id");
+    Uint8List l = await mb.getMessageContent(widget.id);
     Player player = Player();
     if (player.player != null) return;
 

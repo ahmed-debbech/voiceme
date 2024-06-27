@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:voiceme/logic/Shared.dart';
 import 'package:voiceme/parts/VoiceComposer.dart';
 import 'package:voiceme/parts/ListMessages.dart';
 
 void main() {
+  pre();
   runApp(const MyApp());
+}
+
+void pre() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Shared d = Shared();
+  if (await d.isFirstLaunch()) {
+    int p = d.generatePin();
+    print(p);
+    d.storePin(p);
+  }
 }
 
 class MyApp extends StatelessWidget {
