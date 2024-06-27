@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:voiceme/backend/MessageBackend.dart';
+import 'package:voiceme/logic/Player.dart';
 
 class Message extends StatefulWidget {
-  final String duration;
+  final int duration;
   final String date;
   final String status;
   final bool sentByMe;
@@ -21,18 +23,43 @@ class Message extends StatefulWidget {
 }
 
 class _MessageState extends State<Message> {
-
   MessageBackend mb = MessageBackend();
+  Player p = Player();
+  bool isPlaying = false;
+  int count = 0;
+  late Timer timer;
 
-  Future<void> play() async{
+  Future<void> play() async {
     Uint8List l = await mb.getMessageContent("id");
-    print(l);
+    Player player = Player();
+    if (player.player != null) return;
+
+    setState(() => isPlaying = true);
+    setState(() => count = 0);
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (timer.tick >= widget.duration) {
+        timer.cancel();
+      } else {
+        setState(() => {count++});
+      }
+    });
+    player.play(l);
   }
+
+  Future<void> stop() async {
+    Player player = Player();
+    if (player.player == null) return;
+
+    setState(() => isPlaying = false);
+    timer.cancel();
+    player.stop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        play();
+        (!isPlaying) ? play() : stop();
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10.0),
@@ -57,7 +84,7 @@ class _MessageState extends State<Message> {
                 children: <Widget>[
                   Container(
                     margin: const EdgeInsets.only(top: 5.0),
-                    child: Text(widget.duration),
+                    child: Text("$count / ${widget.duration}"),
                   ),
                   Row(
                     children: [
